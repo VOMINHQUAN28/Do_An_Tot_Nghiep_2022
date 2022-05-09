@@ -1,0 +1,573 @@
+﻿@using QuickFood.Models.Business;
+@using QuickFood.Models.EF;
+@{
+    var food = (Food)ViewBag.foodDetail;
+    ViewBag.Title = food.Name;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var lstFood = ViewBag.lstFoodSameCategory as List<Food>;
+    var lstCmt = ViewBag.lstCmt as List<Comment>;
+    var lstReply = ViewBag.lstReply as List<ReplyCmt>;
+    var lstRelate = Session["RecentFood"] as List<Food>;
+    var lstTopping = ViewBag.Topping as List<Topping>;
+    string link = "/thuc-don/" + food.Food_Category.Link.Trim() + "-" + food.Food_Category.ID;
+    bool check = ViewBag.Check;
+}
+
+<!-- ****** order ****** -->
+<div class="banner">
+    <div class="container">
+        <div class="row">
+            <p>Thực đơn</p>
+        </div>
+    </div>
+</div>
+
+<div class="bre-crum">
+    <div class="container">
+        <div class="row">
+            <p><a href="/" title=""><i class="fa fa-home"></i>Trang chủ</a> &gt;&gt; Thực đơn &gt;&gt; @food.Name</p>
+        </div>
+    </div>
+</div>
+
+<section class="single_blog_area section_padding_80">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-sm-8 col-md-6">
+                <div class="row no-gutters">
+                    <!-- Single Post -->
+                    <div class="col-10 col-sm-11">
+                        <div class="single-post">
+                            <!-- Post Thumb -->
+                            <div class="post-thumb">
+                                <img src="~/Assets/Client/img/food/@food.Image" alt="" style="width: 500px">
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ****** Blog Sidebar ****** -->
+            <div class="col-12 col-sm-8 col-md-6">
+                <div class="blog-sidebar mt-5 mt-lg-0">
+                    <!-- Single Widget Area -->
+                    <div class="single-widget-area about-me-widget text-center">
+                        <h3 class="post-headline">
+                            @food.Name
+                        </h3>
+                        <h4 class="text-left">
+                            Giá:
+                            <span class="current-price">@food.Price.Value.ToString("N0")</span>
+                            <span style="font-weight: 400;position: relative;top: -8px;font-size: 20px;right: 0;">đ</span>
+                        </h4>
+                        <div class="btn-group" role="group" aria-label="Button group with nested dropdown" style="margin-right: 205px;">
+                            <h4 class="text-left" style="width: 100%">Số lượng:</h4>
+                            <input type="number" class="quantity-food form-control" value="1">
+                        </div>
+                        <h4 class="text-left">
+                            Danh mục: <a href="@link">@food.Food_Category.Name</a>
+                        </h4>
+                        @if (lstTopping.Count > 0 && check == false)
+                        {
+                            <button class="btn cart-btn" data-id="@food.ID">Đặt món</button>
+                        }
+                        else
+                        {
+                            <button class="btn cart-nottoping btnadd" data-id="@food.ID">Đặt món</button>
+                        }
+
+                        <p class="text-left">
+                            <b>Yummy Food</b> luôn sẵn sàng hợp tác với các nhà hàng, quán ăn, cafe...
+                            để mở rộng kinh doanh cũng như gia tăng khách hàng.
+                            Hãy kết nối vào hệ thống đặt và giao hàng để giảm bớt
+                            chi phí quản lý, vận hành, marketing, công nghệ...
+                        </p>
+                    </div>
+
+                </div>
+
+            </div>
+            <div class="col-12">
+                <div class="rows">
+                    <!-- Single Widget Area -->
+                    <div class="single-widget-area popular-post-widget">
+                        <div class="widget-title text-center">
+                            <h6>Topping</h6>
+                        </div>
+                        @if (lstTopping.Count > 0)
+                        {
+                            foreach (var item in lstTopping)
+                            {
+                                <div class="col-md-12 col-lg-4 section_padding_20" style="float: left;">
+                                    <div class="single-populer-post d-flex">
+                                        <img src="~/Assets/Client/img/topping/@item.Image" alt="">
+                                        <div class="post-content" style="margin-top: 10px">
+                                            <a href="#">
+                                                <h6>@item.Name</h6>
+                                            </a>
+                                            <p>
+                                                Giá: <span class="price-topping">@item.Price.Value.ToString("N0") đ</span>
+                                            </p>
+                                            @if (check == true)
+                                            {
+                                                <div class="btn-group" role="group" aria-label="Button group with nested dropdown">
+                                                    <span>Số lượng:</span>
+                                                    <input type="number" class="quantity-topping quantity-topping_@item.ID form-control" value="1">
+                                                </div>
+                                                <div class="btn-adding" data-name="@item.Name"  data-topping-id="@item.ID">
+                                                    +
+                                                </div>
+                                            }
+
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <h4 class="text-center"><i>Món ăn này không có topping</i></h4>
+                        }
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-12 col-sm-4 col-md-8">
+                <div class="related-post-area section_padding_50">
+                    <div class="widget-title text-center">
+                        <h6>Món ăn cùng danh mục</h6>
+                    </div>
+                    <div class="related-post-slider owl-carousel">
+
+                        @foreach (var item in lstFood.Take(6))
+                        {
+                            var url = "/mon-an/" + item.MetaTitle.Trim() + "-" + item.ID;
+                            <!-- Single Related Post-->
+                            <div class="single-post">
+                                <!-- Post Thumb -->
+                                <div class="post-thumb">
+                                    <a href="@url">
+                                        <img src="~/Assets/Client/img/food/@item.Image" alt="" style="height: 180px">
+                                    </a>
+                                </div>
+                                <!-- Post Content -->
+                                <div class="post-content">
+                                    <div class="post-meta d-flex">
+                                        <div class="post-author-date-area d-flex">
+                                            <!-- Post Author -->
+                                            <div class="post-author">
+                                                <a href="javascript:void(0)" class="btnadd" data-id="@item.ID"><i class="fa fa-shopping-cart" aria-hidden="true"></i></a>
+                                            </div>
+                                            <!-- Post Date -->
+                                            <div class="post-date">
+                                                <a href="@url">@item.Price.Value.ToString("N0") ₫</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <a href="@url">
+                                        <h6>@item.Name</h6>
+                                    </a>
+                                </div>
+                            </div>
+                        }
+
+                    </div>
+                </div>
+            </div>
+            <div class="col-xs-12 col-sm-3 col-md-4">
+                <div class="widget-title text-center section_padding_50">
+                    <h6>Món ăn đã xem</h6>
+                </div>
+                <div class="list-box-right">
+                    @foreach (var item in lstRelate.Take(3))
+                    {
+                        var url = "/mon-an/" + item.MetaTitle.Trim() + "-" + item.ID;
+                        <div class="media">
+                            <a class="pull-left tintuc_img" href="@url">
+                                <img class="media-object" src="~/Assets/Client/img/food/@item.Image" alt="Image">
+                            </a>
+                            <div class="media-body" style="margin-top:5px;">
+                                <h4 class="media-heading" style="line-height: 1rem"><a href="@url" title="">@item.Name</a></h4>
+                                <div>
+                                    <p class="pull-left">@item.Price.Value.ToString("N0") ₫</p>
+                                    @*<p class="pull-left"><a href="/my-menu?foodId=@item.ID&quantity=1" title=""><i class="fa fa-shopping-cart" aria-hidden="true"></i></a></p>*@
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                </div>
+            </div>
+            <div class="col-12 col-sm-8 col-md-8">
+                <div class="comment_area section_padding_50 clearfix">
+                    <h4 class="mb-30">@lstCmt.Count Đánh giá</h4>
+
+                    <ol>
+                        <!-- Single Comment Area -->
+                        <li class="single_comment_area">
+                            @foreach (var item in lstCmt)
+                            {
+                                <div class="comment-wrapper d-flex">
+                                    <div class="comment-content">
+                                        <h5>@item.User.Full_Name</h5>
+                                        <span class="comment-date text-muted">
+                                            @item.CreatedDate.Value.ToString("dd"), tháng @item.CreatedDate.Value.ToString("MM, yyyy")
+                                        </span>
+                                        <input type="hidden" value="@item.Rating" class="rating" data-filled="fa fa-star fa-1x" data-empty="fa fa-star-o fa-1x" data-start="5" data-stop="10" disabled />
+                                        <p>@item.Content</p>
+                                        <a class="active btnAnswer" data-cmt-id="@item.ID" href="javascript:void(0)">Trả lời</a>
+                                    </div>
+                                </div>
+                                <ol class="children" style="display: none" id="reply_@item.ID">
+                                    <li class="single_comment_area">
+                                        <div class="comment-wrapper d-flex">
+                                            <form action="#" method="post">
+                                                <div class="form-group">
+                                                    <textarea class="form-control" id="Content_@item.ID" cols="80" rows="3" placeholder="Message"></textarea>
+                                                </div>
+                                                <button type="button" data-user-id="@CookiesManage.GetUser().ID" data-cmt-id="@item.ID" class="btn Reply-btn">Trả lời</button>
+                                            </form>
+                                        </div>
+                                    </li>
+                                </ol>
+
+                                foreach (var jtem in lstReply.Where(x => x.Comment_ID == item.ID))
+                                {
+                                    <ol class="children">
+                                        <li class="single_comment_area">
+                                            <div class="comment-wrapper d-flex">
+
+                                                <div class="comment-content">
+
+                                                    <h5>@jtem.User.Full_Name</h5>
+                                                    <span class="comment-date text-muted">
+                                                        @jtem.CreatedDate.Value.ToString("dd"), tháng @jtem.CreatedDate.Value.ToString("MM, yyyy")
+                                                    </span>
+                                                    <p>@jtem.Content</p>
+
+                                                </div>
+                                            </div>
+                                        </li>
+                                    </ol>
+                                }
+                            }
+
+                        </li>
+
+                    </ol>
+                </div>
+            </div>
+            <div class="col-12 col-sm-8 col-md-4">
+                @if (CookiesManage.Logined())
+                {
+                    <div class="leave-comment-area section_padding_50 clearfix">
+                        <div class="comment-form">
+                            <h4 class="mb-30">Đánh giá của bạn</h4>
+                            <!-- Comment Form -->
+                            <form action="#" method="post">
+                                <div class="form-group">
+                                    <h5 style="margin-left: 15px;">Điểm đánh giá: </h5>
+                                    <div class="col-xs-5" style="color: gold;">
+                                        <input type="hidden" id="point_review" class="rating" data-filled="fa fa-star fa-3x" data-empty="fa fa-star-o fa-3x" data-start="5" data-stop="10" />
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <h5 style="margin-left: 15px;">Điểm đánh giá: </h5>
+                                    <textarea class="form-control" name="Content" id="Content" cols="30" rows="10" placeholder="Message"></textarea>
+                                </div>
+                                <input type="hidden" id="User_ID" value="@CookiesManage.GetUser().ID" />
+                                <input type="hidden" id="Food_ID" value="@food.ID" />
+                                <button type="button" id="btn-Comment" data- class="btn contact-btn">Gửi đánh giá</button>
+                            </form>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="leave-comment-area section_padding_50 clearfix">
+                        <div class="comment-form">
+                            <h4 class="mb-30">Đăng nhập để đánh giá món ăn này.</h4>
+                            <a href="/user/login" class="btn contact-btn">Đăng nhập</a>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+    </div>
+</section>
+
+@if (check == false)
+{
+    <div class="modal fade" id="add" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title text-center">Vui lòng chọn Topping món ăn (nếu muốn)</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="col-12">
+                        <div class="rows">
+                            <!-- Single Widget Area -->
+                            <div class="single-widget-area popular-post-widget">
+                                <div class="widget-title text-center">
+                                    <h6>Topping</h6>
+                                </div>
+
+                                @foreach (var item in lstTopping)
+                                {
+                                    <div class="col-md-12 col-lg-6 section_padding_20" style="float: left;">
+                                        <div class="single-populer-post d-flex">
+                                            <img src="~/Assets/Client/img/topping/@item.Image" alt="">
+                                            <div class="post-content" style="margin-top: 10px">
+                                                <a href="#">
+                                                    <h6>@item.Name</h6>
+                                                </a>
+                                                <p>
+                                                    Giá: <span class="price-topping">@item.Price.Value.ToString("N0") đ</span>
+                                                </p>
+                                                <div class="btn-group" role="group" aria-label="Button group with nested dropdown">
+                                                    <span>Số lượng:</span>
+                                                    <input type="number" class="quantity-topping quantity-topping_@item.ID form-control" value="1">
+                                                </div>
+                                                <div class="btn-adding" data-name="@item.Name" data-topping-id="@item.ID">
+                                                    +
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+
+
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Đóng</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+
+
+
+@section jsFooter
+{
+    <script src="~/Assets/Client/js/rating.js"></script>
+    <script>
+
+        $(function () {
+             $('.btnadd').click(function () {
+                var food_id = $(this).data('id');
+                var quantity = $('.quantity-food').val();
+
+                $.ajax({
+                    url: '/order/AddMenu',
+                    data: {
+                        foodId: food_id,
+                        quantity: quantity,
+                    },
+                    type: 'POST',
+                    dataType: 'json',
+                    success: function (res) {
+                        if (res.status == true) {
+                            const notice = PNotify.success({
+                                title: 'THÔNG BÁO!',
+                                text: 'Đặt món ăn thành công. Click để xem thực đơn.'
+                            });
+                            notice.refs.elem.style.cursor = 'pointer';
+                            notice.on('click', e => {
+                                window.location.href = "/order"
+                            });
+                            var count = $('#lblCartCount').text();
+                            var Soluong = parseInt(count) + 1;
+                            $('#lblCartCount').text(Soluong);
+                        } else {
+                                PNotify.error({
+                                title: 'THÔNG BÁO!!',
+                                text: 'Đã có lỗi xảy ra, bạn vui lòng thử lại sau.'
+                            });
+                        }
+
+                    }
+                 });
+
+             });
+
+             $('.btn-adding').click(function () {
+                var topping_name = $(this).data('name');
+                var topping_id = $(this).data('topping-id');
+                var quantity = $('.quantity-topping_' + topping_id).val();
+
+                  $.ajax({
+                    url: '/order/AddTopping',
+                    data: {
+                        topping_Id: topping_id,
+                        quantity: quantity
+                    },
+                    type: 'POST',
+                    dataType: 'json',
+                    success: function (res) {
+                        if (res.status == true) {
+                            const notice = PNotify.success({
+                                dir1: 'down',
+                                title: 'THÔNG BÁO!',
+                                text: 'Thêm topping: ' + topping_name + '. Số lượng: ' + quantity + ' thành công. Click để xem thực đơn.'
+                            });
+                            notice.refs.elem.style.cursor = 'pointer';
+                            notice.on('click', e => {
+                                window.location.href = "/order"
+                            });
+                        } else {
+                                PNotify.error({
+                                title: 'THÔNG BÁO!!',
+                                text: 'Đã có lỗi xảy ra, bạn vui lòng thử lại sau.'
+                            });
+                        }
+
+                    }
+                 });
+
+            });
+
+            $('.cart-btn').on('click', function () {
+                $('#add').modal('show');
+                var food_id = $('.cart-btn').data('id');
+                var quantity = $('.quantity-food').val();
+
+                 $.ajax({
+                    url: '/order/AddMenu',
+                    data: {
+                        foodId: food_id,
+                        quantity: quantity,
+                    },
+                    type: 'POST',
+                    dataType: 'json',
+                    success: function (res) {
+                        if (res.status == true) {
+                            const notice = PNotify.success({
+                                title: 'THÔNG BÁO!',
+                                text: 'Thêm món ăn thành công. Click để xem thực đơn.'
+                            });
+                            notice.refs.elem.style.cursor = 'pointer';
+                            notice.on('click', e => {
+                                window.location.href = "/order"
+                            });
+                        } else {
+                                PNotify.error({
+                                title: 'THÔNG BÁO!!',
+                                text: 'Đã có lỗi xảy ra, bạn vui lòng thử lại sau.'
+                            });
+                        }
+
+                    }
+                 });
+            })
+
+            $('.rating').on('change', function () {
+                // $(this).next('.label').text($(this).val());
+                // alert($(this).val());
+                $('#point_review').val($(this).val());
+            });
+
+            $("#btn-Comment").click(function () {
+                var user_id = $('#User_ID').val();
+                var food_id = $('#Food_ID').val();
+                var content = $('#Content').val();
+                var rating = $('#point_review').val();
+
+                var json_review = [];
+                json_review.push({
+                    Content: content,
+                    Rating: rating,
+                    User_ID: user_id,
+                    Food_ID: food_id
+                });
+
+                console.log(json_review);
+                $.ajax({
+                    url: '/food/addComment',
+                    data: { json_review: JSON.stringify(json_review) },
+                    type: 'POST',
+                    dataType: 'json',
+                    success: function (res) {
+                        if (res.status == true) {
+                            var url = "@food.MetaTitle.Trim()" + "-" + food_id;
+                            window.location.href = "/mon-an/" + url;
+                            PNotify.success({
+                                title: 'THÔNG BÁO!!',
+                                text: 'Đánh giá món ăn thành công.'
+                            });
+                        } else {
+                                PNotify.error({
+                                title: 'THÔNG BÁO!!',
+                                text: 'Đã có lỗi xảy ra, bạn vui lòng đánh giá món ăn vào thời gian tới.'
+                            });
+                        }
+
+
+                    }
+                });
+            });
+
+            $('.btnAnswer').click(function () {
+
+                var cmt_id = $(this).data('cmt-id');
+                $('#reply_' + cmt_id).css('display', 'block');
+
+            });
+
+             $(".Reply-btn").click(function () {
+                var user_id = $(this).data('user-id');
+                var cmt_id = $(this).data('cmt-id');
+                var content = $('#Content_' + cmt_id).val();
+                var food_id = $('#Food_ID').val();
+
+                var json_review = [];
+                json_review.push({
+                    Content: content,
+                    User_ID: user_id,
+                    Comment_ID: cmt_id
+                });
+
+                console.log(json_review);
+                $.ajax({
+                    url: '/food/addReply',
+                    data: { json_review: JSON.stringify(json_review) },
+                    type: 'POST',
+                    dataType: 'json',
+                    success: function (res) {
+                        if (res.status == true) {
+                            var url = "@food.MetaTitle.Trim()" + "-" + food_id;
+                            window.location.href = "/mon-an/" + url;
+                            PNotify.success({
+                                title: 'THÔNG BÁO!!',
+                                text: 'Trả lời đánh giá thành công.'
+                            });
+                        } else {
+                                PNotify.error({
+                                title: 'THÔNG BÁO!!',
+                                text: 'Đã có lỗi xảy ra, bạn vui lòng trả lời đánh giá vào thời gian tới.'
+                            });
+                        }
+
+
+                    }
+                });
+            });
+        });
+    </script>
+
+}

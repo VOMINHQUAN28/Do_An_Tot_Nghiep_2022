@@ -1,0 +1,454 @@
+﻿@using PagedList.Mvc;
+@using PagedList;
+@using QuickFood.Models.EF;
+@model PagedList.IPagedList<Food>
+@{
+    ViewBag.Title = "Danh sách món ăn";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+    int i = 0, j = 0;
+    var lstTopping = ViewBag.LstTopping as List<Topping>;
+}
+
+
+<div class="row">
+    <div class="col-lg-12">
+        <h1 class="page-header">Danh sách Món ăn</h1>
+    </div>
+    <!-- /.col-lg-12 -->
+</div>
+<div class="row">
+    @if (TempData["message"] != null)
+    {
+        <div class="alert alert-success text-center text-uppercase" id="AlertBox">
+            @TempData["message"]
+        </div>
+    }
+</div>
+<!-- /.row -->
+<div class="row">
+    <div class="col-lg-6">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                Danh sách món ăn đang trưng bày
+            </div>
+            <div class="btn-create">
+                <a href="/Admin/Fooder/Create" class=" btn btn-success">
+                    <i class="glyphicon glyphicon-plus"></i>
+                    Thêm mới món ăn
+                </a>
+            </div>
+            <!-- /.panel-heading -->
+            <div class="panel-body">
+                <table width="100%" class="table">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>#</th>
+                            <th style="text-align:center;" colspan="2">Thông tin món ăn</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            var url = "/Admin/Fooder?Food_ID=" + item.ID + "&Page=" + Model.PageNumber;
+                            <tr>
+                                <td><input type="checkbox" class="checkbox-food"  value="@url"/></td>
+                                <td><img src="~/Assets/Client/img/food/@item.Image" class="img-responsive" style="width: 100px" /></td>
+                                <td>
+                                    <p><b>@item.Name</b></p>
+                                    <p>Giá: <b>@item.Price.Value.ToString("N0")</b> đ</p>
+                                </td>
+                                <td>
+                                    <button class="btn btn-success btnAdd" data-id="@item.ID"><i class="fa fa-tags fa-fw"></i>Topping</button>
+                                    <a href="/Admin/Fooder/Edit/@item.ID" class="btn glyphicon glyphicon-edit btn-primary" title="Cập nhật thông tin món ăn" style="padding-bottom:5px"></a>
+                                    <button type="button" class="btn glyphicon glyphicon-remove btn-danger btnDelete" title="Xóa món ăn" data-id="@item.ID"></button>
+                                </td>
+                            </tr>
+                        }
+
+                    </tbody>
+                </table>
+                <!-- /.table-responsive -->
+
+            </div>
+            <!-- /.panel-body -->
+        </div>
+        <!-- /.panel -->
+    </div>
+    <!-- /.col-lg-12 -->
+    <div class="col-lg-6">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                Topping món ăn
+            </div>
+            <!-- /.panel-heading -->
+            <div class="panel-body">
+                <table width="100%" class="table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th style="text-align:center;" colspan="2">Thông tin</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (lstTopping.Count > 0)
+                        {
+                            foreach (var item in lstTopping)
+                            {
+                                j++;
+                                <tr class="odd gradeX">
+                                    <td>@j</td>
+                                    <td><img src="~/Assets/Client/img/topping/@item.Image" class="img-responsive" style="width: 100px" /></td>
+                                    <td>
+                                        <b>@item.Name</b>
+                                        <p>Giá: <b>@item.Price.Value.ToString("N0")</b></p>
+                                    </td>
+                                    <td>
+                                        <button data-id="@item.ID" data-food="@item.Food.Name" class="btn btn-primary btnEdit" title="Chỉnh sửa"><i class="fa fa-edit"></i></button>
+                                        <button class="btn btn-danger btnDeleteTopping" title="Xóa" data-food="@item.Food_ID" data-id="@item.ID"><i class="fa fa-remove"></i></button>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr >
+                                <td colspan="4" class="text-center"><i>Món ăn không có topping. Chọn button Topping để thêm</i></td>
+                                
+                            </tr>
+                        }
+
+                    </tbody>
+                </table>
+                <!-- /.table-responsive -->
+
+            </div>
+            <!-- /.panel-body -->
+        </div>
+        <!-- /.panel -->
+    </div>
+</div>
+<!-- /.row -->
+<div class="row">
+    <div class="col-12 text-center">
+        <div class="pagination-area d-sm-flex mt-15">
+            <div class="page-status">
+                <p>Trang @(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber) / @Model.PageCount</p>
+            </div>
+            <nav aria-label="#">
+                @Html.PagedListPager(Model, page => Url.Action("Index", new { page }))
+            </nav>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="add" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-center">Thêm Topping cho món ăn</h5>
+                <p>Tên món ăn: <b id="FoodName"></b></p>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                @using (Html.BeginForm("frmAdd_Topping", "Fooder", FormMethod.Post, new { enctype = "multipart/form-data", id = "frmAdd" }))
+                {
+                    <input type="hidden" name="Page" value="@Model.PageNumber" />
+                    <input type="hidden" name="Food_ID" id="Food_ID" />
+                    <div class="form-group col-md-6">
+                        <label for="recipient-name" class="col-form-label">Tên topping:</label>
+                        <input type="text" name="Name" class="form-control">
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label for="recipient-name" class="col-form-label">Giá:</label>
+                        <input type="number" name="Price" min="1000" class="form-control">
+                    </div>
+                    <div class="form-group col-md-12">
+                        <label for="exampleInputPassword1">Ảnh đại diện bài viết</label>
+                        <input name="Image" type="file" id="imgInp" accept="image/*"> <br>
+                        <img id="blah" src="~/Assets/Client/img/empty.jpg" alt="your image" width="100px" />
+                    </div>
+                    <div class="form-group col-md-12 text-center">
+                        <button type="submit" class="btn btn-primary">Thêm mới</button>
+                    </div>
+                }
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade edit" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-center">Cập nhật Topping cho món ăn</h5>
+                <p>Tên món ăn: <b id="Food_Name"></b></p>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                @using (Html.BeginForm("frmEdit_Topping", "Fooder", FormMethod.Post, new { enctype = "multipart/form-data", id = "frmEdit" }))
+                {
+                    <input type="hidden" name="ID" id="ID" />
+                    <input type="hidden" name="Page" id="@Model.PageNumber" />
+                    <div class="form-group col-md-6">
+                        <label for="recipient-name" class="col-form-label">Tên topping:</label>
+                        <input type="text" name="Name" id="Name" class="form-control">
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label for="recipient-name" class="col-form-label">Giá:</label>
+                        <input type="number" name="Price" id="Price" min="1000" class="form-control">
+                    </div>
+                    <div class="form-group col-md-12">
+                        <label for="recipient-name" class="col-form-label">Ảnh đại diện:</label>
+                        <label for="imgInp_edit" class="custom-file-upload">
+                            <i class="fa fa-cloud-upload"></i>
+                        </label>
+                        <input id="imgInp_edit" name="Image" type="file" style="display:none;" accept="image/*"> <br>
+                        <img id="blah_edit" src="" alt="your image" width="100px" />
+                    </div>
+                    <div class="form-group col-md-12 text-center">
+                        <button type="submit" class="btn btn-primary">Cập nhật</button>
+                    </div>
+                }
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section jsFooter{
+
+    <script type="text/javascript">
+        imgInp.onchange = evt => {
+    		const [file] = imgInp.files
+    		if (file) {
+    			blah.src = URL.createObjectURL(file)
+    		}
+        }
+
+        imgInp_edit.onchange = evt => {
+    		const [file] = imgInp_edit.files
+    		if (file) {
+    			blah_edit.src = URL.createObjectURL(file)
+    		}
+    	}
+        $(document).ready(function () {
+           
+            $('#imgInp_edit').change(function() {
+        		var i = $(this).prev('label').clone();
+        		var file = '<i class="fa fa-cloud-upload"></i>' + $('#imgInp_edit')[0].files[0].name;
+        		$(this).prev('label').empty();
+        		$(this).prev('label').append(file);
+            });
+
+            $('.checkbox-food').off('click').on('click', function () {
+                window.location.href = $(this).val();
+            });
+
+            //nếu không có thao tác gì thì ẩn đi
+            $('#AlertBox').removeClass('hide');
+
+            //Sau khi hiển thị lên thì delay 1s và cuộn lên trên sử dụng slideup
+            $('#AlertBox').delay(3000).slideUp(500);
+           
+
+            $('.btnDelete').off('click').on('click', function () {
+
+                const notice = PNotify.notice({
+                    title: 'Thông báo',
+                    text: 'Bạn thật sự muốn xóa?',
+                    icon: 'fa fa-question-circle',
+                    width: '360px',
+                    minHeight: '110px',
+                    hide: false,
+                    closer: false,
+                    sticker: false,
+                    destroy: true,
+                    stack: new PNotify.Stack({
+                        dir1: 'down',
+                        modal: true,
+                        firstpos1: 25,
+                        overlayClose: false
+                    }),
+                    modules: new Map([
+                        ...PNotify.defaultModules,
+                        [PNotifyConfirm, {
+                            confirm: true
+                        }]
+                    ])
+                });
+
+                notice.on('pnotify:confirm', () =>
+                    $.ajax({
+                        data: { ID: $(this).data('id') },
+                        url: '/Admin/Fooder/Delete',
+                        dataType: 'Json',
+                        type: 'POST',
+                        success: function (res) {
+                            if (res.status == true) {
+                                PNotify.success({
+                                    title: 'THÔNG BÁO!!',
+                                    text: 'Xóa thành công.'
+                                });
+                                window.location.href = "/Admin/Fooder";
+                            } else {
+                                PNotify.error({
+                                    title: 'THÔNG BÁO!!',
+                                    text: 'Xóa KHÔNG thành công.'
+                                });
+                            }
+                        }
+                    })
+
+                );
+            });
+
+            $('.btnAdd').click(function(event) {
+                $('#add').modal('show');
+                //alert($(this).data('id'));
+                var ID = $(this).data('id');
+                $.ajax({
+                        url: "/Admin/Fooder/GetFoodById/" + ID,
+                        type: 'GET',
+                        dataType: 'json',
+                        contentType: "application/json; charset=utf-8",
+                        success: function (res) {
+                            $('#FoodName').text(res.Name);
+                            $('#Food_ID').val(res.ID);
+                        }
+                    });
+            });
+
+            $('.btnEdit').click(function (event) {
+                $('.edit').modal('show');
+                //alert($(this).data('id'));
+                var ID = $(this).data('id');
+                $('#Food_Name').text($(this).data('food'));
+                $.ajax({
+                        url: "/Admin/Fooder/GetToppingById/" + ID,
+                        type: 'GET',
+                        dataType: 'json',
+                        contentType: "application/json; charset=utf-8",
+                        success: function (res) {
+                            $('#blah_edit').attr('src', '/Assets/Client/img/topping/' + res.Image);
+                            $('#Price').val(res.Price);
+                            $('#Name').val(res.Name);
+                            $('#ID').val(res.ID);
+                        }
+                    });
+            });
+
+            $('.btnDeleteTopping').off('click').on('click', function () {
+                var food_id = $(this).data('food');
+                const notice = PNotify.notice({
+                    title: 'Thông báo',
+                    text: 'Bạn thật sự muốn xóa topping này?',
+                    icon: 'fa fa-question-circle',
+                    width: '360px',
+                    minHeight: '110px',
+                    hide: false,
+                    closer: false,
+                    sticker: false,
+                    destroy: true,
+                    stack: new PNotify.Stack({
+                        dir1: 'down',
+                        modal: true,
+                        firstpos1: 25,
+                        overlayClose: false
+                    }),
+                    modules: new Map([
+                        ...PNotify.defaultModules,
+                        [PNotifyConfirm, {
+                            confirm: true
+                        }]
+                    ])
+                });
+
+                notice.on('pnotify:confirm', () =>
+                    $.ajax({
+                        data: { ID: $(this).data('id') },
+                        url: '/Admin/Fooder/DeleteTopping',
+                        dataType: 'Json',
+                        type: 'POST',
+                        success: function (res) {
+                            if (res.status == true) {
+                                PNotify.success({
+                                    title: 'THÔNG BÁO!!',
+                                    text: 'Xóa thành công.'
+                                });
+                                window.location.href = "/Admin/Fooder?Food_ID=" + food_id + "&Page=" + @Model.PageNumber;
+                            } else {
+                                PNotify.error({
+                                    title: 'THÔNG BÁO!!',
+                                    text: 'Xóa KHÔNG thành công.'
+                                });
+                            }
+                        }
+                    })
+
+                );
+            });
+
+             $("#frmAdd").validate({
+                rules: {
+                     Name: "required",
+                     Price: {
+                         required: true,
+                         min: 1000
+                     },
+                     Image: "required"
+                },
+                messages: {
+                    Name: "Vui lòng nhập tên topping",
+                    Price: {
+                        required: 'Vui lòng nhập giá bán',
+                        min: 'Giá thấp nhất là 1000 đ'
+                    },
+                    Image: "Vui lòng chọn hình ảnh"
+                }
+            });
+
+            $("#frmEdit").validate({
+                rules: {
+                   Name: "required",
+                     Price: {
+                         required: true,
+                         min: 1000
+                     },
+                     Image: "required"
+                },
+                messages: {
+                    Name: "Vui lòng nhập tên topping",
+                    Price: {
+                        required: 'Vui lòng nhập giá bán',
+                        min: 'Giá thấp nhất là 1000 đ'
+                    },
+                    Image: "Vui lòng chọn hình ảnh"
+                }
+            });
+
+
+
+        });
+
+        var url = window.location;
+        $('input[type="checkbox"]').each(function () {
+            if (url.origin + $(this).val() == url) {
+                $(this).attr('checked', 'checked');
+            }
+            return;
+        });
+    </script>
+
+}

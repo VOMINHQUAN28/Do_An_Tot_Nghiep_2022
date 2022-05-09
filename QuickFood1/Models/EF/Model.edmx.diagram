@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+ <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram DiagramId="9e4e9c445c0e4d31ac0e0b597ced7f4f" Name="Diagram1">
+        <EntityTypeShape EntityType="QuickFoodModel.Comment" Width="1.5" PointX="3" PointY="2.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="QuickFoodModel.Favorite" Width="1.5" PointX="6" PointY="7.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="QuickFoodModel.Food" Width="1.5" PointX="3.75" PointY="14.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="QuickFoodModel.Food_Category" Width="1.5" PointX="1.5" PointY="15.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="QuickFoodModel.Main_Menu" Width="1.5" PointX="5.75" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="QuickFoodModel.Order" Width="1.5" PointX="3" PointY="8.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="QuickFoodModel.Order_Detail" Width="1.5" PointX="5.25" PointY="10.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="QuickFoodModel.ReplyCmt" Width="1.5" PointX="5.25" PointY="4.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="QuickFoodModel.sysdiagram" Width="1.5" PointX="7.75" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="QuickFoodModel.Topping" Width="1.5" PointX="5.25" PointY="19.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="QuickFoodModel.Topping_Order" Width="1.5" PointX="7.5" PointY="10.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="QuickFoodModel.User" Width="1.5" PointX="0.75" PointY="4.5" IsExpanded="true" />
+        <AssociationConnector Association="QuickFoodModel.FK_Comment_User" ManuallyRouted="false" />
+        <AssociationConnector Association="QuickFoodModel.FK_ReplyCmt_Comment" ManuallyRouted="false" />
+        <AssociationConnector Association="QuickFoodModel.FK_Favorite_Food" ManuallyRouted="false" />
+        <AssociationConnector Association="QuickFoodModel.FK_Favorite_User" ManuallyRouted="false" />
+        <AssociationConnector Association="QuickFoodModel.FK_Food_Food_Category" ManuallyRouted="false" />
+        <AssociationConnector Association="QuickFoodModel.FK_Order_Detail_Food" ManuallyRouted="false" />
+        <AssociationConnector Association="QuickFoodModel.FK_Topping_Food" ManuallyRouted="false" />
+        <AssociationConnector Association="QuickFoodModel.FK_Order_Detail_Order" ManuallyRouted="false" />
+        <AssociationConnector Association="QuickFoodModel.FK_Order_User" ManuallyRouted="false" />
+        <AssociationConnector Association="QuickFoodModel.FK_Topping_Order_Order_Detail" ManuallyRouted="false" />
+        <AssociationConnector Association="QuickFoodModel.FK_ReplyCmt_User" ManuallyRouted="false" />
+        <AssociationConnector Association="QuickFoodModel.FK_Topping_Order_Topping" ManuallyRouted="false" />
+      </Diagram>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>

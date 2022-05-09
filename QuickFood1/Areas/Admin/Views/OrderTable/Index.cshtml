@@ -1,0 +1,181 @@
+﻿@using PagedList.Mvc;
+@using PagedList;
+@using QuickFood.Models.EF;
+
+@model PagedList.IPagedList<Order>
+@{
+    ViewBag.Title = "Danh sách đơn hàng";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+    int dem = 0;
+}
+
+
+<div class="row">
+    <div class="col-lg-12">
+        <h1 class="page-header">Danh sách đơn hàng</h1>
+    </div>
+    <!-- /.col-lg-12 -->
+</div>
+<div class="row">
+    @if (TempData["message"] != null)
+    {
+        <div class="alert alert-success text-center text-uppercase" id="AlertBox">
+            @TempData["message"]
+        </div>
+    }
+</div>
+<!-- /.row -->
+<div class="row">
+    <div class="col-lg-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                Danh sách đơn hàng
+            </div>
+            <!-- /.panel-heading -->
+            <div class="panel-body">
+                <table width="100%" class="table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th class="text-center">Thông tin khách hàng</th>
+                            <th class="text-center">Thông tin đơn hàng</th>
+                            <th class="text-center">Trạng thái</th>
+                            <th class="text-center"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+
+                        @foreach (var item in Model)
+                        {
+                            bool tag = true;
+                            dem++;
+                            <tr>
+                                <td>@dem</td>
+                                <td>
+                                    <p>Họ và tên: <b>@item.Full_Name</b></p>
+                                    <p>SĐT: <b>@item.Phone</b></p>
+                                    <p>Địa chỉ: <b>@item.Address</b></p>
+                                </td>
+                                <td>
+                                    <p>Ngày đặt: <b>@item.CreatedDate.Value.ToString("hh:mm tt dd-MM-yyyy")</b></p>
+                                    <p>Tổng tiền: <b>@item.TotalMoney.Value.ToString("N0")</b></p>
+                                    <p>Tổng số lượng: <b>@item.TotalQuantity</b></p>
+                                </td>
+                                <td class="text-center">
+                                    @if (item.Status == -2)
+                                    {
+                                        <span class="label label-danger">Đã hủy</span>
+                                    }
+                                    else if (item.Status == -1)
+                                    {
+                                        <span class="label label-warning">Đã từ chối</span>
+                                    }
+                                    else if (item.Status == 0)
+                                    {
+                                        <button class="btn btn-default btnStatus" title="Kích hoạt vận chuyển" data-id="@item.ID" data-value="0">Đã tiếp nhận</button>
+                                    }
+                                    else if (item.Status == 1)
+                                    {
+
+                                        <div class="btn-group">
+                                            <button type="button" class="btn btn-success btn-xs dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                                                Đang vận chuyển
+                                                <span class="caret"></span>
+                                            </button>
+                                            <ul class="dropdown-menu pull-right" role="menu">
+                                                <li>
+                                                    <a class="btnStatus" href="javascript:void(0)" data-id="@item.ID" data-value="2">Thanh toán</a>
+                                                </li>
+                                                <li class="divider"></li>
+                                                <li>
+                                                    <a class="btnStatus" href="javascript:void(0)" data-id="@item.ID" data-value="-2">Khách từ chối nhận</a>
+                                                </li>
+                                                
+                                            </ul>
+                                        </div>
+                                    }
+                                    else if (item.Status == 2)
+                                    {
+                                        <span class="label label-primary">Đã thanh toán</span>
+                                    }
+
+                                </td>
+                                <td class="text-center">
+                                        <a href="/Admin/OrderDetail/Index?order_id=@item.ID" class="btn btn-info"><i class="fa fa-info-circle fa-fw"></i>Xem chi tiết</a>
+                                </td>
+                            </tr>
+
+                        }
+
+                    </tbody>
+                </table>
+                <!-- /.table-responsive -->
+
+            </div>
+            <!-- /.panel-body -->
+        </div>
+        <!-- /.panel -->
+    </div>
+    <!-- /.col-lg-12 -->
+</div>
+<!-- /.row -->
+<div class="row">
+    <div class="col-12 text-center">
+        <div class="pagination-area d-sm-flex mt-15">
+            <div class="page-status">
+                <p>Trang @(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber) / @Model.PageCount</p>
+            </div>
+            <nav aria-label="#">
+                @Html.PagedListPager(Model, page => Url.Action("Index", new { page }))
+            </nav>
+        </div>
+    </div>
+</div>
+
+
+@section jsFooter{
+
+    <script>
+        $(document).ready(function () {
+
+            //nếu không có thao tác gì thì ẩn đi
+            $('#AlertBox').removeClass('hide');
+
+            //Sau khi hiển thị lên thì delay 1s và cuộn lên trên sử dụng slideup
+            $('#AlertBox').delay(3000).slideUp(500);
+
+
+            $('.btnStatus').click(function (event) {
+                var ID = $(this).data('id');
+                var Value = $(this).data('value');
+                $.ajax({
+                    url: "/Admin/OrderTable/ChangeStatus?ID=" + ID + "&Value=" + Value,
+                    data: {},
+                    type: 'POST',
+                    dataType: 'json',
+                    contentType: "application/json; charset=utf-8",
+                    success: function (res) {
+                        if (res.status == true) {
+                            PNotify.success({
+                                title: 'THÔNG BÁO!!',
+                                text: 'Cập nhật trạng thái thành công.'
+                            });
+                            window.location.href = "/Admin/OrderTable";
+                        } else {
+                            PNotify.error({
+                                title: 'THÔNG BÁO!!',
+                                text: 'Cập nhật trạng thái KHÔNG thành công.'
+                            });
+                        }
+                    }
+                });
+            });
+
+           
+
+        });
+
+    </script>
+
+}

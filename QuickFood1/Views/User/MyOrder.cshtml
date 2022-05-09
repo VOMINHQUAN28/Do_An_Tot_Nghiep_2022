@@ -1,0 +1,210 @@
+﻿@using PagedList.Mvc;
+@using PagedList;
+@using QuickFood.Models.EF;
+
+@model PagedList.IPagedList<Order>
+@{
+    ViewBag.Title = "Đơn hàng của bạn";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    int dem = 0;
+}
+
+
+<div class="banner">
+    <div class="container">
+        <div class="row text-center">
+            <p>Đơn hàng của bạn</p>
+        </div>
+    </div>
+</div>
+
+<div class="breadcumb-nav">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="/"><i class="fa fa-home" aria-hidden="true"></i> Trang chủ</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Đơn hàng của bạn</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ****** Breadcumb Area End ****** -->
+<!-- ****** Contatc Area Start ****** -->
+<div class="contact-area">
+    <div class="container">
+        <!-- Contact Form  -->
+        <div class="contact-form-area">
+            <div class="row">
+                <div class="col-12 col-md-12 item">
+                    <div class="contact-form wow fadeInUpBig">
+                        <h2 class="contact-form-title mb-30">Đơn hàng của bạn</h2>
+                        <!-- Contact Form -->
+                        <table id="cart" class="table table-condensed ">
+                            <thead>
+                                <tr>
+                                    <th class="text-center">#</th>
+                                    <th class="text-center">Ngày đặt</th>
+                                    <th class="text-center">Số lượng</th>
+                                    <th class="text-center">Tổng tiền(₫)</th>
+                                    <th class="text-center">Trạng thái</th>
+                                    <th class="text-center"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model)
+                                {
+                                    dem++;
+                                    <tr>
+                                        <td class="text-center">
+                                            @dem
+                                        </td>
+                                        <td class="text-center">
+                                            @item.CreatedDate.Value.ToString("dd-MM-yyyy")
+                                        </td>
+                                        <td class="text-center">@item.TotalQuantity</td>
+                                        <td class="text-center">
+                                            @item.TotalMoney.Value.ToString("N0")
+                                        </td>
+                                        <td class="text-center">
+                                            @if (item.Status == -2)
+                                            {
+                                                <span class="label label-danger">Đã hủy</span>
+                                            }
+                                            else if (item.Status == -1)
+                                            {
+                                                <span class="label label-warning">Đã từ chối</span>
+                                            }
+                                            else if (item.Status == 0)
+                                            {
+                                                <span class="label label-default">Đã tiếp nhận</span>
+                                                
+                                            }
+                                            else if (item.Status == 1)
+                                            {
+                                                <span class="label label-success">Đang vận chuyển</span>
+                                            }
+                                            else if (item.Status == 2)
+                                            {
+                                                <span class="label label-primary">Đã thanh toán</span>
+                                            }
+
+                                        </td>
+                                        <td class="text-center">
+                                            <a href="/user/orderdetail?order_id=@item.ID" class="btn btn-info"><i class="fa fa-info-circle fa-fw"></i>Xem chi tiết</a>
+                                            @if (item.Status == 0)
+                                            {
+                                                <button class="btn btn-danger btnCancer" data-id="@item.ID" >Hủy đơn</button>
+                                            }
+
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+
+                        </table>
+
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <div class="pagination-area d-sm-flex mt-15">
+                        <nav aria-label="#">
+                            <ul class="pagination">
+                                @if (Model.PageNumber > 1)
+                                {
+                                    <li class="page-item">
+                                        <a class="page-link" href="@Url.Action("MyOrder", new { Page = Model.PageNumber - 1 })">Sau <i class="fa fa-angle-double-left" aria-hidden="true"></i></a>
+                                    </li>
+                                }
+
+                                @for (int i = 1; i <= Model.PageCount; i++)
+                                {
+                                    <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                                        <a class="page-link" href="@Url.Action("MyOrder", new { Page = i })">@i</a>
+                                    </li>
+                                }
+
+                                @if (Model.PageNumber < Model.PageCount)
+                                {
+                                    <li class="page-item">
+                                        <a class="page-link" href="@Url.Action("MyOrder", new {  Page = Model.PageNumber + 1 })">Tiếp <i class="fa fa-angle-double-right" aria-hidden="true"></i></a>
+                                    </li>
+                                }
+
+                            </ul>
+                        </nav>
+                        <div class="page-status">
+                            <p>Trang @(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber) / @Model.PageCount</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+@section jsFooter{
+    <script>
+        $(function () {
+
+             $('.btnCancer').off('click').on('click', function () {
+
+                const notice = PNotify.notice({
+                    title: 'Thông báo',
+                    text: 'Bạn thật sự muốn hủy đơn hàng này?',
+                    icon: 'fa fa-question-circle',
+                    width: '360px',
+                    minHeight: '110px',
+                    hide: false,
+                    closer: false,
+                    sticker: false,
+                    destroy: true,
+                    stack: new PNotify.Stack({
+                        dir1: 'down',
+                        modal: true,
+                        firstpos1: 25,
+                        overlayClose: false
+                    }),
+                    modules: new Map([
+                        ...PNotify.defaultModules,
+                        [PNotifyConfirm, {
+                            confirm: true
+                        }]
+                    ])
+                });
+
+                notice.on('pnotify:confirm', () =>
+                    $.ajax({
+                        data: { ID: $(this).data('id') },
+                        url: '/user/cancer',
+                        dataType: 'Json',
+                        type: 'POST',
+                        success: function (res) {
+                            if (res.status == true) {
+                                PNotify.success({
+                                    title: 'THÔNG BÁO!!',
+                                    text: 'Hủy đơn hàng thành công.'
+                                });
+                                window.location.href = "/user/myorder";
+                            } else {
+                                PNotify.error({
+                                    title: 'THÔNG BÁO!!',
+                                    text: 'Hủy đơn hàng KHÔNG thành công.'
+                                });
+                            }
+                        }
+                    })
+
+                );
+               
+            });
+        });
+    </script>
+
+}

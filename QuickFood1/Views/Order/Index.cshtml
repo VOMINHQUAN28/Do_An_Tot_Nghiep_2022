@@ -1,0 +1,182 @@
+﻿@using QuickFood.Models;
+@model List<OrderFood>
+
+@{
+    ViewBag.Title = "Thực đơn của tôi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var lstopping = Session["Topping"] as List<ToppingDTO>;
+    var sum = new long();
+}
+
+
+
+
+<div class="banner">
+    <div class="container">
+        <div class="row">
+            <p>Thực đơn của tôi</p>
+        </div>
+    </div>
+</div>
+
+
+@if (Model.Count > 0)
+{
+    <div class="container">
+        <table id="cart" class="table table-condensed">
+            <thead>
+                <tr>
+                    <th class="text-center" style="width:55%">Tên món ăn</th>
+                    <th class="text-center" style="width:5%">Giá (₫)</th>
+                    <th class="text-center" style="width:8%">Số lượng</th>
+                    <th class="text-center" style="width:15%">Thành tiền (₫)</th>
+                    <th class="text-center" style="width:17%"> </th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    var url = "/mon-an/" + item.food.MetaTitle.Trim() + "-" + item.food.ID;
+                    <tr>
+                        <td data-th="Product">
+                            <div class="row">
+                                <div class="col-sm-3 img-food">
+                                    <img src="~/Assets/Client/img/food/@item.food.Image" class="img-responsive">
+                                </div>
+                                <disv class="col-sm-9">
+                                    <a href="@url">
+                                        <h5 class="nomargin">@item.food.Name</h5>
+                                    </a>
+                                </disv>
+
+                            </div>
+                        </td>
+
+                        <td class="text-center" data-th="Price">
+                            @item.food.Price.Value.ToString("N0") ₫
+                        </td>
+                        <td data-th="Quantity">
+                            <div class="form-control text-center">
+                                <input class="txtQuantity" value="@item.quantity" type="number" data-id="@item.food.ID">
+                            </div>
+                        </td>
+                        <td data-th="Subtotal" class="text-center">@((item.food.Price.GetValueOrDefault(0) * item.quantity).ToString("N0"))</td>
+                        <td class="actions" data-th="">
+                            <div class="btn-Edit" title="Sửa số lượng">
+                                <a class="btn btn-info btn-sm">
+                                    <i class="fa fa-edit"></i>@*button sửa sản phẩm*@
+                                </a>
+                            </div>
+
+                            <div class="btn-Delete" title="Xóa sản phẩm" data-id="@item.food.ID">
+                                <a class="btn btn-danger btn-sm">
+                                    <i class="fa fa-trash-o"></i>@*button xóa sản phẩm*@
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    if (lstopping != null && lstopping.Count(x => x.Topping.Food_ID == item.food.ID) > 0)
+                    {
+
+                        foreach (var jtem in lstopping.Where(x => x.Topping.Food_ID == item.food.ID))
+                        {
+                            var total = jtem.Topping.Price * jtem.count;
+                            sum += (long)(total);
+                            <tr>
+                                <td>
+                                    <div class="row">
+                                        <div class="col-sm-3 img-food">
+
+                                        </div>
+                                        <div class="col-sm-9">
+                                            @*<b style="color: deepskyblue">Topping</b>*@
+                                            <h5 class="nomargin">@jtem.Topping.Name</h5>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-center">@jtem.Topping.Price.Value.ToString("N0")</td>
+                                <td class="text-center">@jtem.count</td>
+                                <td class="text-center">@total.Value.ToString("N0")</td>
+                                <td>
+                                    <b class="Del-top" title="Xóa topping" data-id="@jtem.Topping.ID"><i class="fa fa-close"></i></b>
+                                </td>
+                            </tr>
+
+                        }
+
+
+                    }
+                    sum += (long)(item.food.Price.GetValueOrDefault(0) * item.quantity);
+                }
+            </tbody>
+            <tfoot>
+                <tr>
+
+                    <td>
+                        <a class="btn btn-success" id="btnDeleteAll"><i class="fa fa-times" style="color:#ff0000; margin-right:2px;"></i>Xóa thực đơn</a>
+                    </td>
+
+                    <td>
+                        <a href="/" class="btn btn-warning"><i class="fa fa-angle-left"></i> Tiếp tục xem món ăn</a>
+                    </td>
+                    <td class="hidden-xs"></td>
+                    <td class="text-right">Tổng tiền: </td>
+                    <td class="hidden-xs text-center">
+                        <strong>@sum.ToString("N0") ₫  </strong>
+                    </td>
+                    <td>
+                        <a href="/dat-mon" class="btn btn-success btn-block">Đặt món <i class="fa fa-angle-right"></i></a>
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+}
+else
+{
+    <div class="warning">
+        <p>Bạn chưa có món ăn nào trong thực đơn</p>
+        <div class="btnWarning">
+            <a href="/" class="btn btn-info btn-rounded"><i class="fa fa-angle-left"></i> Tiếp tục xem món ăn</a>
+        </div>
+    </div>
+}
+
+@section jsFooter{
+    <script src="~/Assets/Client/js/Menu.js"></script>
+    <script>
+
+        $(function () {
+            $('.Del-top').click(function () {
+                var topping_id = $(this).data('id');
+
+                $.ajax({
+                    url: '/order/DeleteTopping',
+                    data: {
+                        id: topping_id
+                    },
+                    type: 'POST',
+                    dataType: 'json',
+                    success: function (res) {
+                        if (res.status == true) {
+                                window.location.href = "/order"
+                        } else {
+                                PNotify.error({
+                                title: 'THÔNG BÁO!!',
+                                text: 'Đã có lỗi xảy ra, bạn vui lòng thử lại sau.'
+                            });
+                        }
+
+                    }
+                 });
+
+             });
+
+           
+        });
+    </script>
+}
+
+
+
+

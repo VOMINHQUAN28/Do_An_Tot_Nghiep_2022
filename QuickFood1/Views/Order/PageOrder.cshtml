@@ -1,0 +1,207 @@
+﻿@using QuickFood.Models;
+@using QuickFood.Models.Business;
+@model List<OrderFood>
+@{
+    ViewBag.Title = "Đặt món";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var sum = new long();
+    int total = new int();
+    var lstopping = Session["Topping"] as List<ToppingDTO>;
+
+}
+
+
+
+<!-- ****** order ****** -->
+<div class="banner">
+    <div class="container">
+        <div class="row">
+            <p>Đặt món</p>
+        </div>
+    </div>
+</div>
+
+<div class="bre-crum">
+    <div class="container">
+        <div class="row">
+            <p><a href="/" title=""><i class="fa fa-home"></i>Trang chủ</a> &gt;&gt; Đặt món</p>
+
+        </div>
+        @if (TempData["message"] != null)
+        {
+            <div class="row">
+                <div class="alert alert-success text-center text-uppercase" id="AlertBox">
+                    @TempData["message"]
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+
+<div class="contact-area">
+    <div class="container">
+        <!-- Contact Form  -->
+        <div class="contact-form-area">
+            <div class="row">
+                <div class="title-news-home" @*style="margin-bottom: 150px;"*@>
+                    <p class="p1">Thông tin đặt món</p>
+                    <p class="p2">Yummy Food</p>
+                    @*<div class="des_datban">Với hi vọng mang lại cho những bạn học viên có cơ hội tránh những bữa cơm khó ăn của nhà bếp, Nhà hàng bể bơi mang đến cho các bạn những món ăn đáng đồng tiền bát gạo mà các bạn bỏ ra, đảm bảo ngon, bổ, rẻ. Xin kính mời. ^^</div>*@
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12 col-md-8">
+                    <div class="news-home">
+                        <p class="p3 text-center">Món ăn của bạn </p>
+                    </div>
+                        <table id="cart" class="table table-condensed ">
+                            <thead>
+                                <tr>
+                                    <th class="text-center">Tên món ăn</th>
+                                    <th class="text-center">Giá (₫)</th>
+                                    <th class="text-center" style="width:20%">Số lượng</th>
+                                    <th class="text-center" style="width:25%">Thành tiền(₫)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model)
+                                {
+                                    <tr class="tb-order">
+                                        <td data-th="Product">
+                                            <a href="#">@item.food.Name</a>
+                                        </td>
+                                        <td class="text-center" data-th="Price">@item.food.Price.Value.ToString("N0") </td>
+                                        <td class="text-center" data-th="Quantity">
+                                            @item.quantity
+                                        </td>
+                                        <td class="text-center">@((item.food.Price.GetValueOrDefault(0) * item.quantity).ToString("N0")) </td>
+                                    </tr>
+                                    if (lstopping != null && lstopping.Count(x => x.Topping.Food_ID == item.food.ID) > 0)
+                                    {
+                                        foreach (var jtem in lstopping.Where(x => x.Topping.Food_ID == item.food.ID))
+                                        {
+                                            var total_count = jtem.Topping.Price * jtem.count;
+                                            sum += (long)(total_count);
+                                            total += jtem.count;
+                                            <tr class="tb-order">
+                                                <td data-th="Product">
+                                                    <div class="col-md-5"></div>
+                                                    <div class="col-md-7">
+                                                        @jtem.Topping.Name
+                                                    </div>
+                                                   
+                                                </td>
+                                                <td class="text-center" data-th="Price">@jtem.Topping.Price.Value.ToString("N0") </td>
+                                                <td class="text-center" data-th="Quantity">
+                                                    @jtem.count
+                                                </td>
+                                                <td class="text-center">@total_count.Value.ToString("N0") </td>
+                                            </tr>
+                                        }
+
+                                    }
+                                    sum += (long)(item.food.Price.GetValueOrDefault(0) * item.quantity);
+                                    total += item.quantity;
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="2"></td>
+                                    <td>Tổng số lượng:</td>
+                                    <td class="text-center">
+                                        <strong style="font-size:20px; color:#891801;">  @total   </strong>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="2"></td>
+                                    <td>Tổng tiền:</td>
+                                    <td class="text-center">
+                                        <strong style="font-size:20px; color:#891801;">  @sum.ToString("N0")   </strong>₫
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    
+                </div>
+                <div class="col-12 col-md-4 item">
+                    <div class="contact-form wow">
+                        <h2 class="contact-form-title mb-30 text-center">Thông tin người đặt</h2>
+                        <!-- Contact Form -->
+                        @using (Html.BeginForm("BookTable", "Order", FormMethod.Post, new { id = "frmValidate" }))
+                        {
+                            <input type="hidden" name="TotalQuantity" value="@total"/>
+                            <input type="hidden" name="TotalMoney" value="@sum"/>
+                            <input type="hidden" name="User_ID" value="@(CookiesManage.Logined() ? CookiesManage.GetUser().ID : 0)"/>
+                            <div class="form-group">
+                                <label>Họ và tên</label>
+                                <input type="text" class="form-control" name="Full_Name" value="@(CookiesManage.Logined() ? CookiesManage.GetUser().Full_Name : "")" placeholder="Họ và tên *" required="required" />
+                            </div>
+                            <div class="form-group">
+                                <label>Số điện thoại</label>
+                                <input type="text" name="Phone" class="form-control" value="@(CookiesManage.Logined() ? CookiesManage.GetUser().Phone : "")" placeholder="Số điện thoại *" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Địa chỉ</label>
+                                <input type="text" name="Address" class="form-control" value="@(CookiesManage.Logined() ? CookiesManage.GetUser().Address : "")" placeholder="Email">
+                            </div>
+                            <div class="form-group">
+                                <label>Ghi chú</label>
+                                <textarea name="Note" placeholder="Ghi chú" cols="40" class="form-control" rows="4"></textarea>
+                            </div>
+                            <div class="form-group text-center">
+                                <button type="submit" class="btn btn-warning" style="width: 200px; cursor: pointer;">Đặt hàng</button>
+                            </div>
+                        }
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+
+@section jsFooter{
+    <script type="text/javascript">
+
+        $(function () {
+
+            //nếu không có thao tác gì thì ẩn đi
+            $('#AlertBox').removeClass('hide');
+
+            //Sau khi hiển thị lên thì delay 1s và cuộn lên trên sử dụng slideup
+            $('#AlertBox').delay(2000).slideUp(500);
+
+            jQuery.validator.addMethod("phonenu", function (value, element) {
+                if (/^(09[0-9]|07[0|6|7|8|9]|03[2-9]|08[1-5])+([0-9]{7})\b/g.test(value)) {
+                    return true;
+                } else {
+                    return false;
+                };
+            }, "Invalid phone number");
+            //Khi bàn phím được nhấn và thả ra thì sẽ chạy phương thức này
+            $("#frmValidate").validate({
+                rules: {
+                    Address: "required",
+                    Full_Name: "required",
+                    Phone: {
+                        required: true,
+                        phonenu: true
+                    }
+                },
+                messages: {
+                    Address: "Vui lòng nhập địa chỉ",
+                    Full_Name: "Vui lòng nhập họ và tên",
+                    Phone: {
+                        required: "Vui lòng nhập số điện thoại",
+                        phonenu: "Số điện thoại không hợp lệ"
+                    }
+                }
+            });
+        });
+    </script>
+}
